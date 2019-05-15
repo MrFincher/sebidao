@@ -2,4 +2,5 @@
 *~
 /daorestclient-demo/nbproject/
 /pgtypes/nbproject/
-/.idea/
+.idea/
+*.iml
