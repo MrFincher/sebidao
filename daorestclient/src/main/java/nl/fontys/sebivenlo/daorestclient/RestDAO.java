@@ -55,7 +55,8 @@ public class RestDAO<K extends Serializable, E extends Entity2<K>> implements
             String baseUrl, Class<E> type,
             BiFunction<URL, String, HttpURLConnection> aConfigurator ) {
         this.configurator = aConfigurator;
-        this.baseUrl = baseUrl.endsWith( "/" ) ? baseUrl : baseUrl + '/';
+         String actualBase = baseUrl.endsWith( "/" ) ? baseUrl : baseUrl + '/';
+        this.baseUrl = actualBase + type.getName();
         this.type = type;
 
     }
