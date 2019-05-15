@@ -14,10 +14,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
+import java.net.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -56,7 +54,7 @@ public class RestDAO<K extends Serializable, E extends Entity2<K>> implements
             BiFunction<URL, String, HttpURLConnection> aConfigurator ) {
         this.configurator = aConfigurator;
          String actualBase = baseUrl.endsWith( "/" ) ? baseUrl : baseUrl + '/';
-        this.baseUrl = actualBase + type.getName();
+        this.baseUrl = actualBase + type.getSimpleName();
         this.type = type;
 
     }
@@ -224,5 +222,36 @@ public class RestDAO<K extends Serializable, E extends Entity2<K>> implements
                     ex );
             throw new DAOException( ex.getMessage(), ex );
         }
+    }
+
+    @Override
+    public Collection<E> getByColumnValues(Object... keyValues) {
+        String params = "";
+        params += "?" + String.class.cast(keyValues[0]) + "=";
+        params +=  Serializable.class.cast(keyValues[1]);
+        for(int i = 2; i < keyValues.length; i += 2) {
+            params += "&" + String.class.cast(keyValues[0 + i]) + "=";
+            params +=  Serializable.class.cast(keyValues[1 + i]);
+        }
+
+        try {
+            URL url = new URL( baseUrl + params);
+            Type typeToken
+                    = TypeToken.getParameterized( ArrayList.class, type ).
+                    getType();
+            URLConnection con = url.openConnection();
+            con.setDoOutput(true);
+            DataOutputStream out = new DataOutputStream(con.getOutputStream());
+            out.writeBytes(params);
+            Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8 );
+            Gson gson = gsonBuilder.create();
+            List<E> p = gson.fromJson( reader, typeToken );
+            return p;
+        } catch ( JsonIOException | JsonSyntaxException | IOException ex ) {
+            Logger.getLogger( RestDAO.class.getName() ).log( Level.SEVERE, null,
+                    ex );
+            throw new DAOException( ex.getMessage(), ex );
+        }
+
     }
 }
