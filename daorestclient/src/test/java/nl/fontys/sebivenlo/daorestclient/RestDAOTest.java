@@ -311,4 +311,13 @@ public class RestDAOTest {
         }
         //verify( postRequestedFor( WireMock.urlMatching( endPoint ) ) );//.withHeader("Content-Type",equalTo("application/json")));
     }
+
+
+    @Test
+    public void testGenPathParams() {
+        RestDAO<Integer, Student> dao = dfac.createDao(Student.class);
+        LocalDate now = LocalDate.now();
+        String params = dao.genPathParams(new Object[]{"snumber", 1, "dob", now});
+        assertEquals("?snumber=1&dob=" + now, params);
+    }
 }
